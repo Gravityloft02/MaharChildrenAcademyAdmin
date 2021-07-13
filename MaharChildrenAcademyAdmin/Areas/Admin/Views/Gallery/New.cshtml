@@ -1,0 +1,203 @@
+﻿@model MaharChildrenAcademyAdmin.Models.AlbumModel
+
+@{
+    ViewBag.Title = "New";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="page-header">
+    <h3 class="page-title"> New </h3>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">Gallery</a></li>
+            <li class="breadcrumb-item active" aria-current="page">New</li>
+        </ol>
+    </nav>
+</div>
+<div class="row">
+    <div class="col-md-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Image Upload</h4>
+                <hr />
+                <form class="addGallery">
+                    <div class="form-group">
+                        <label for="album">Select Album</label>
+
+                        <select class="form-control" id="album">
+                            <option>Republic Day Celebration</option>
+                            <option>Diwali</option>
+                            <option>Sports Day</option>
+                            <option>Memories</option>
+                        </select>
+
+                    </div>
+                    <div class="form-group">
+                        <label>File upload</label>
+                        <input type="file" name="img[]" class="file-upload-default">
+                        <div class="input-group col-xs-12">
+                            <input type="file" id="album_images" class="form-control file-upload-info" placeholder="Choose Image" name="files[]" />
+                            @Html.HiddenFor(model => model.Image)
+                            @*<input type="text" class="form-control file-upload-info" disabled placeholder="Choose Image" multiple>*@
+                            <span class="input-group-append">
+                                <button class="file-upload-browse btn btn-gradient-maroon" id="upload_album_images" type="button">Upload</button>
+                            </span>
+                        </div>
+                    </div>
+                    <br />
+                    <p class="text-danger">Minimun 10 files Uploaded</p>
+
+                    <button type="submit" class="btn btn-gradient-maroon mr-2" id="album_submit">Submit</button>
+                    @*<button class="btn btn-light">Cancel</button>*@
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th> # </th>
+                                <th>File Name </th>
+                                <th> Status </th>
+                                <th> File Size </th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td> 1 </td>
+                                <td> Herman Beck </td>
+                                <td> uploaded </td>
+                                <td>100kb</td>
+                                <td></td>
+
+                            </tr>
+                            <tr>
+                                <td> 2 </td>
+                                <td> Messsy Adam </td>
+                                <td> uploaded </td>
+                                <td>230kb</td>
+                                <td></td>
+
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Create New Album</h4>
+                <hr />
+                <form class="addAlbum">
+                    <div class="form-group">
+                        <label for="albumname">Album Name</label>
+                        <input type="text" class="form-control" id="albumname" placeholder="Enter Album Name">
+                    </div>
+                    <div class="form-group">
+                        <label for="desc">Description</label>
+                        <input type="text" class="form-control" id="desc" placeholder="Enter Description">
+                    </div>
+                    <div class="form-group row">
+                        <label for="date">Date of Birth</label>
+
+                        <input type="date" id="date" class="form-control" placeholder="dd/mm/yyyy" />
+
+                    </div>
+                    <button type="submit" class="btn btn-gradient-maroon mr-2">Submit</button>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<input type="hidden" id="album_fileData" />
+
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+            if (window.File && window.FileList && window.FileReader) {
+                $("#album_images").on("change", function (e) {
+                    var album_images = e.target.files,
+                        filesLength = album_images.length;
+
+                    var fileData = new FormData();
+
+                    for (var i = 0; i < filesLength; i++) {
+
+                        var f = album_images[i]
+                        fileData.append(f.name, f);
+
+                        var fileReader = new FileReader();
+                        fileReader.onload = (function (e) {
+                            var file = e.target;
+                      
+
+                        });
+                        fileReader.readAsDataURL(f);
+                        //uploadedFiles.push[f];
+                    }
+                    //$("#ProductImageUrl").val(JSON.stringify(uploadedFiles));
+                  //  $("#album_fileData").val(fileData);
+                    //var fileData = $("#album_fileData").val();
+                    $.ajax({
+                        url: '/Upload/UploadImage',
+                        type: "POST",
+                        contentType: false, // Not to set any content header
+                        processData: false, // Not to process data
+                        data: fileData,
+                        success: function (result) {
+                            //var uploadedFiles = "";
+                            var ImageUrl = $("#Image").val();
+                            for (var i = 0; i < result.filePath.length; i++) {
+                                var file = result.filePath[i];
+                                i = i + 1;
+                                var newFile = file + "," + result.filePath[i];
+                                //uploadedFiles = newFile + ";";
+                                ImageUrl = ImageUrl + newFile + ";";
+                                //uploadedFiles.push(newFile);
+                            }
+                            $("#Image").val(ImageUrl);
+
+                        },
+                        error: function (err) {
+                            console.log(err);
+                        }
+                    });
+                });
+            } else {
+                alert("|Sorry, | Your browser doesn't support to File API")
+            }   
+          
+        });
+
+    </script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#album_submit").on("click", function () {
+                $.ajax({
+                    url: '/Admin/GalleryAddAlbum',
+                    type: "POST",
+                    data: $("#addGallery").serialize(),
+                    success: function (result) {
+                        if (result) {
+                            alert("Album added successfully!");
+                        }
+                        else {
+                            alert("We are facing some issue, please try again later");
+                        }
+
+                    },
+                    error: function (err) {
+                        alert("We are facing some issue, please try again later");
+                    }
+                });
+            });
+        });
+    </script>
+}
